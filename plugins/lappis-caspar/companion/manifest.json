@@ -1,0 +1,31 @@
+{
+	"id": "lappis-caspar",
+	"name": "Lappis Caspar",
+	"shortname": "lappis",
+	"description": "A plugin to more easily control cg-manager and the Lappis plugin from Companion",
+	"version": "0.0.0",
+	"license": "MIT",
+	"maintainers": [
+		{
+			"name": "Eliyah Sundström",
+			"email": "eliyah@sundstroem.com"
+		}
+	],
+	"repository": "git+https://github.com/firecraftgaming/lappis-caspar.git",
+	"bugs": "https://github.com/firecraftgaming/lappis-caspar/issues",
+	"legacyIds": [],
+	"runtime": {
+		"type": "node18",
+		"api": "nodejs-ipc",
+		"apiVersion": "0.0.0",
+		"entrypoint": "../index.js"
+	},
+	"manufacturer": "Lappis",
+	"products": [
+		"CasparCG",
+	],
+	"keywords": [
+		"CasparCG",
+		"Lappis"
+	]
+}
