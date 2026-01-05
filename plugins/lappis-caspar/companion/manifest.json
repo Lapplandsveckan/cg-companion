@@ -11,8 +11,7 @@
 			"email": "eliyah@sundstroem.com"
 		}
 	],
-	"repository": "git+https://github.com/firecraftgaming/lappis-caspar.git",
-	"bugs": "https://github.com/firecraftgaming/lappis-caspar/issues",
+	"repository": "git+https://github.com/Lapplandsveckan/cg-companion.git",
 	"legacyIds": [],
 	"runtime": {
 		"type": "node18",
@@ -22,7 +21,7 @@
 	},
 	"manufacturer": "Lappis",
 	"products": [
-		"CasparCG",
+		"CasparCG"
 	],
 	"keywords": [
 		"CasparCG",

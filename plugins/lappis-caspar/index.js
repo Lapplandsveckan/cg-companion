@@ -173,6 +173,31 @@ class LappisCasparInstance extends InstanceBase {
 					this.updateStatus(InstanceStatus.Ok)
 				},
 			},
+			videoroute: {
+				name: 'Toggle Video Route',
+				options: [
+					{
+						type: 'textinput',
+						label: 'Vide Route',
+						id: 'route',
+						default: false,
+					},
+				],
+				callback: async (action, context) => {
+					const atem = action.options.atem ?? false;
+					this.log('info', `Toggle Presentation Mode (ATEM: ${atem})`);
+
+					fetch(this.getURL('plugins/lappis/presentation'), {
+						body: JSON.stringify({ atem }),
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						method: 'POST',
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
 		});
 	}
 

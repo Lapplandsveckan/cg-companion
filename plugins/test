@@ -1,0 +1,445 @@
+
+		const videos = this.getVideos();
+
+this.setActionDefinitions({
+			color: {
+				name: 'Set Color',
+				options: [
+					{
+						type: 'colorpicker',
+						label: 'Color',
+						id: 'color',
+						default: 128 << 16 | 128 << 8 | 128, // Default to gray
+					},
+				],
+				callback: async (action, context) => {
+					const color = action.options.color || (128 << 16 | 128 << 8 | 128);
+					const hex = color.toString(16).padStart(6, '0');
+
+					this.log('info', `Setting color to ${color}, ${hex}`);
+					fetch(this.getURL('color'), {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							color: hex,
+						}),
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			motion: {
+				name: 'Start Motion',
+				options: [
+					{
+						type: 'dropdown',
+						label: 'Motion',
+						id: 'motion',
+						default: '',
+						choices: [
+							{ id: '', label: 'Select a motion' },
+							...videos.filter((video) => video.startsWith('MOTIONS/')).map((video) => ({ id: video, label: video.substring('MOTIONS/'.length) })),
+						],
+					},
+				],
+				callback: async (action, context) => {
+					const motion = action.options.motion || '';
+					this.log('info', `Starting motion ${motion}`);
+					fetch(this.getURL('motion'), {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							motion,
+						}),
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			play_video: {
+				name: 'Play Video',
+				options: [
+					{
+						type: 'checkbox',
+						label: 'Queue',
+						id: 'queue',
+						default: true,
+					},
+					{
+						type: 'dropdown',
+						label: 'Video',
+						id: 'video',
+						default: '',
+						choices: [
+							{ id: '', label: 'Select a video' },
+							...videos.filter((video) => video.startsWith('VIDEOS/')).map((video) => ({ id: video, label: video.substring('VIDEOS/'.length) }))
+						],
+					},
+				],
+				callback: async (action, context) => {
+					const video = action.options.video || '';
+					const queue = action.options.queue ?? true;
+
+					const path = queue ? 'queue/video' : 'play/video';
+
+					this.log('info', `Playing video ${video}`);
+					fetch(this.getURL(path), {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							video,
+						}),
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			play_multi: {
+				name: 'Play Multi-video',
+				options: [
+					{
+						type: 'checkbox',
+						label: 'Queue',
+						id: 'queue',
+						default: true,
+					},
+					{
+						type: 'dropdown',
+						label: 'Video - Main',
+						id: 'video_main',
+						default: '',
+						choices: [
+							{ id: '', label: 'Select a video' },
+							...videos.filter((video) => video.startsWith('VIDEOS/')).map((video) => ({ id: video, label: video.substring('VIDEOS/'.length) }))
+						],
+					},
+					{
+						type: 'dropdown',
+						label: 'Video - VideoWall',
+						id: 'video_videoWall',
+						default: '',
+						choices: [
+							{ id: '', label: 'Select a video' },
+							...videos.filter((video) => video.startsWith('VIDEOS/')).map((video) => ({ id: video, label: video.substring('VIDEOS/'.length) }))
+						],
+					},
+					{
+						type: 'dropdown',
+						label: 'Dominant Video',
+						id: 'dominant',
+						default: 'main',
+						choices: [
+							{ id: 'main', label: 'Main' },
+							{ id: 'videoWall', label: 'VideoWall' },
+						],
+					},
+				],
+				callback: async (action, context) => {
+					const video_main = action.options.video_main || '';
+					const video_videoWall = action.options.video_videoWall || '';
+
+					const queue = action.options.queue ?? true;
+					const dominant = action.options.dominant ?? 'main';
+
+					const path = queue ? 'queue/multi' : 'play/multi';
+
+					this.log('info', `Playing multi-video ${video_main}, ${video_videoWall} : ${dominant}`);
+					fetch(this.getURL(path), {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							video_main,
+							video_videoWall,
+
+							dominant,
+						}),
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			queue_clear: {
+				name: 'Clear Video Queue',
+				options: [],
+				callback: async (action, context) => {
+					this.log('info', `Clearing video queue`);
+					fetch(this.getURL('queue/clear'), {
+						method: 'POST',
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			stop_video: {
+				name: 'Stop Current Video',
+				options: [
+					{
+						type: 'checkbox',
+						label: 'Also clear queue',
+						id: 'clear',
+						default: false,
+					},
+				],
+				callback: async (action, context) => {
+					const clear = action.options.clear ?? false;
+
+					this.log('info', `Stopping video, and possible clearing queue (${clear})`);
+
+					if (clear) {
+						fetch(this.getURL('queue/clear'), {
+							method: 'POST',
+						}).catch(this.fetchCatch);
+					}
+
+					fetch(this.getURL('stop/video'), {
+						method: 'POST',
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			swish: {
+				name: 'Swish',
+				options: [
+					{
+						type: 'textinput',
+						label: 'Swish Nummer',
+						id: 'swish',
+						default: '123 412 65 95',
+					},
+					{
+						type: 'checkbox',
+						label: 'Definite State',
+						id: 'definite',
+						default: false,
+					},
+					{
+						type: 'dropdown',
+						label: 'State',
+						id: 'state',
+						default: '1',
+						choices: [
+							{ id: '1', label: 'Show' },
+							{ id: '2', label: 'Minimize' },
+							{ id: '3', label: 'Minimize & Song' },
+							{ id: '0', label: 'Hide' },
+						],
+					},
+				],
+				callback: async (action, context) => {
+					let state;
+					if (action.options.definite) state = action.options.state;
+
+					const swish = action.options.swish;
+
+					this.log('info', `Playing swish (state: ${state})`);
+					fetch(this.getURL('swish'), {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							state,
+							swish,
+						}),
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			insamling: {
+				name: 'Insamlade Medel',
+				options: [
+					{
+						type: 'textinput',
+						label: 'Insamlade Medel',
+						id: 'now',
+						default: '0',
+					},
+					{
+						type: 'textinput',
+						label: 'Insalings Mål',
+						id: 'goal',
+						default: '1000000',
+					},
+				],
+				callback: async (action, context) => {
+					const now = action.options.now;
+					const goal = action.options.goal;
+
+					this.log('info', `Playing insamlade medel ${now} / ${goal}`);
+					fetch(this.getURL('insamling'), {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							now,
+							goal,
+						}),
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			namnskylt: {
+				name: 'Namnskylt',
+				options: [
+					{
+						type: 'textinput',
+						label: 'Namn',
+						id: 'name',
+						default: '',
+					},
+				],
+				callback: async (action, context) => {
+					const name = action.options.name;
+
+					this.log('info', `Playing namnskylt`);
+					fetch(this.getURL('namnskylt'), {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							name,
+						}),
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			bibeltext: {
+				name: 'Bibeltext',
+				options: [
+					{
+						type: 'textinput',
+						label: 'Referens',
+						id: 'ref',
+						default: '',
+					},
+					{
+						type: 'number',
+						label: 'Vers',
+						id: 'verse',
+						default: 1,
+					},
+					{
+						type: 'textinput',
+						label: 'Text',
+						id: 'text',
+						default: '',
+					}
+				],
+				callback: async (action, context) => {
+					const ref = action.options.ref;
+					const verse = action.options.verse;
+
+					const text = action.options.text;
+
+					this.log('info', `Playing bibeltext ${ref}, ${verse} \n\n ${text}`);
+					fetch(this.getURL('bibeltext'), {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							ref,
+							verse,
+
+							text,
+						}),
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			stop_bibeltext: {
+				name: 'Clear Bibeltext',
+				options: [],
+				callback: async (action, context) => {
+					this.log('info', `Clearing bibeltext`);
+					fetch(this.getURL('stop/bibeltext'), {
+						method: 'POST',
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			bars: {
+				name: 'Toggle Bars',
+				options: [],
+				callback: async (action, context) => {
+					this.log('info', `Toggle bars`);
+					fetch(this.getURL('bars'), {
+						method: 'POST',
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			test: {
+				name: 'Toggle Test Frame',
+				options: [],
+				callback: async (action, context) => {
+					this.log('info', `Toggle test frame`);
+					fetch(this.getURL('test'), {
+						method: 'POST',
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			presentation: {
+				name: 'Toggle Presentation Mode',
+				options: [],
+				callback: async (action, context) => {
+					this.log('info', `Toggle Presentation Mode`);
+					fetch(this.getURL('presentation'), {
+						method: 'POST',
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			panic_soft: {
+				name: 'Soft Panic',
+				options: [],
+				callback: async (action, context) => {
+					this.log('info', `Soft Panic`);
+					fetch(this.getURL('panic/soft'), {
+						method: 'POST',
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+			panic_hard: {
+				name: 'Hard Panic',
+				options: [],
+				callback: async (action, context) => {
+					this.log('info', `Hard Panic`);
+					fetch(this.getURL('panic/hard'), {
+						method: 'POST',
+					}).catch(this.fetchCatch);
+
+					this.updateStatus(InstanceStatus.Ok)
+				}
+			},
+			media_reload: {
+				name: 'Reload Media',
+				options: [],
+				callback: async (action, context) => {
+					this.reloadMedia();
+					this.updateStatus(InstanceStatus.Ok)
+				},
+			},
+		})
