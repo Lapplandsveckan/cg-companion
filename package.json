@@ -1,0 +1,22 @@
+{
+  "name": "companion-module-lappis-cgmanager",
+  "version": "0.1.0",
+  "description": "Bitfocus Companion module for Lappis cg-manager",
+  "type": "module",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "companion-module-build",
+    "dev": "companion-module-build --dev"
+  },
+  "dependencies": {
+    "@companion-module/base": "^2.0.4",
+    "ws": "^8.0.0"
+  },
+  "devDependencies": {
+    "@companion-module/tools": "^3.0.1",
+    "@types/node": "^18.0.0",
+    "@types/ws": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}

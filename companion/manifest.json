@@ -1,0 +1,24 @@
+{
+  "id": "lappis-cgmanager",
+  "type": "connection",
+  "name": "Lappis cg-manager",
+  "shortname": "cg-manager",
+  "description": "Control Lappis cg-manager — start/stop CasparCG, toggle video routes, fire rundown actions, and toggle plugins.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "maintainers": [
+    { "name": "Eliyah Sundström", "email": "eliyah@sundstroem.com" }
+  ],
+  "repository": "git+https://github.com/Lapplandsveckan/cg-companion.git",
+  "bugs": "https://github.com/Lapplandsveckan/cg-companion/issues",
+  "legacyIds": [],
+  "keywords": ["CasparCG", "Lappis", "cg-manager"],
+  "runtime": {
+    "type": "node22",
+    "api": "nodejs-ipc",
+    "apiVersion": "0.0.0",
+    "entrypoint": "../dist/index.js"
+  },
+  "manufacturer": "Lappis",
+  "products": ["cg-manager"]
+}
