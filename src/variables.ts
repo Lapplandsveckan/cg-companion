@@ -20,7 +20,7 @@ export function buildVariableValues(state: State): Record<string, string | numbe
   const vals: Record<string, string | number | boolean> = {
     caspar_status: state.caspar.running ? 'running' : 'stopped',
     caspar_last_error: state.caspar.lastError ?? '',
-    rundown_count: [...state.rundowns.values()].filter(r => r.type !== 'quick').length,
+    rundown_count: state.rundowns.size,
     connected: state.connected ? 'true' : 'false',
   }
   for (const route of state.routes.values()) {

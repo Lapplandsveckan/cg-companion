@@ -32,19 +32,11 @@ export interface Plugin {
   enabled: boolean
 }
 
-export interface RundownActionDescriptor {
-  id: string
-  fileTypes?: unknown
-  destination?: unknown
-}
-
 export class State {
   caspar: CasparStatus = { running: false, supported: false, lastError: null }
   routes: Map<string, VideoRoute> = new Map()
   rundowns: Map<string, Rundown> = new Map()
   plugins: Plugin[] = []
-  actions: RundownActionDescriptor[] = []
-  actionTypes: string[] = []
   runningConfig: unknown = null
   connected = false
 
@@ -82,7 +74,7 @@ export class State {
           this.rundowns.delete(data as string)
         } else if (method === 'CREATE') {
           const r = data as Rundown
-          this.rundowns.set(r.id, r)
+          if (r.type === 'quick') this.rundowns.set(r.id, r)
         } else if (method === 'UPDATE') {
           const { id, name } = data as { id: string; name: string }
           const existing = this.rundowns.get(id)

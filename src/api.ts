@@ -144,13 +144,11 @@ export class REPClient {
   }
 
   private async primeState() {
-    const [caspar, routes, rundowns, plugins, actions, types] = await Promise.all([
+    const [caspar, routes, quickRundowns, plugins] = await Promise.all([
       this.request('caspar/status', 'GET'),
       this.request('routes', 'GET'),
-      this.request('rundown', 'GET'),
+      this.request('rundown/quick', 'GET'),
       this.request('plugins', 'GET'),
-      this.request('rundown/actions', 'GET'),
-      this.request('rundown/types', 'GET'),
     ])
 
     this.state.caspar = caspar as State['caspar']
@@ -158,11 +156,9 @@ export class REPClient {
       (routes as { id: string }[]).map(r => [r.id, r as never])
     )
     this.state.rundowns = new Map(
-      (rundowns as { id: string }[]).map(r => [r.id, r as never])
+      (quickRundowns as { id: string }[]).map(r => [r.id, r as never])
     )
     this.state.plugins = plugins as State['plugins']
-    this.state.actions = actions as State['actions']
-    this.state.actionTypes = types as string[]
     this.state.emit()
   }
 

@@ -6,12 +6,9 @@ export function buildActions(api: REPClient, state: State): CompanionActionDefin
   const routeChoices = [...state.routes.values()].map(r => ({ id: r.id, label: r.name }))
 
   const rundownItemChoices = [...state.rundowns.values()]
-    .filter(r => r.type === 'quick')
     .flatMap(r => r.items.map(i => ({ id: `${r.id}:${i.id}`, label: `${r.name}: ${i.title}` })))
 
   const pluginChoices = state.plugins.map(p => ({ id: p.name, label: p.name }))
-
-  const actionTypeChoices = state.actionTypes.map(t => ({ id: t, label: t }))
 
   const noOp = () => {}
 
@@ -80,23 +77,6 @@ export function buildActions(api: REPClient, state: State): CompanionActionDefin
         const rd = state.rundowns.get(rundownId)
         const entry = rd?.items.find(i => i.id === entryId)
         if (!entry) return
-        api.request('rundown/execute', 'ACTION', { entry }).catch(noOp)
-      },
-    },
-    plugin_action: {
-      name: 'Plugin: Run Action Type',
-      options: [
-        {
-          type: 'dropdown',
-          id: 'actionType',
-          label: 'Action Type',
-          choices: actionTypeChoices,
-          default: actionTypeChoices[0]?.id ?? '',
-        },
-      ],
-      callback: (action) => {
-        const type = action.options['actionType'] as string
-        const entry = { id: '', title: type, type, data: {}, metadata: { autoNext: false } }
         api.request('rundown/execute', 'ACTION', { entry }).catch(noOp)
       },
     },

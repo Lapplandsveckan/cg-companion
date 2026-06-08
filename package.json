@@ -1,6 +1,6 @@
 {
   "name": "companion-module-lappis-cgmanager",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Bitfocus Companion module for Lappis cg-manager",
   "type": "module",
   "license": "MIT",
