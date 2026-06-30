@@ -125,6 +125,8 @@ export class REPClient {
     ws.on('close', () => {
       if (this.destroyed) return
       this.state.connected = false
+      // Clear feedback subscription state so placed feedbacks re-subscribe on reconnect.
+      this.state.resetFeedbackState()
       this.state.emit()
       this.onStatus(InstanceStatus.ConnectionFailure, 'Disconnected')
       this.scheduleReconnect()
@@ -144,11 +146,12 @@ export class REPClient {
   }
 
   private async primeState() {
-    const [caspar, routes, quickRundowns, plugins] = await Promise.all([
+    const [caspar, routes, quickRundowns, plugins, companionDefs] = await Promise.all([
       this.request('caspar/status', 'GET'),
       this.request('routes', 'GET'),
       this.request('rundown/quick', 'GET'),
       this.request('plugins', 'GET'),
+      this.request('companion/definitions', 'GET'),
     ])
 
     this.state.caspar = caspar as State['caspar']
@@ -159,6 +162,11 @@ export class REPClient {
       (quickRundowns as { id: string }[]).map(r => [r.id, r as never])
     )
     this.state.plugins = plugins as State['plugins']
+
+    const defs = companionDefs as { actions: never[]; feedbacks: never[] } | null ?? { actions: [], feedbacks: [] }
+    this.state.companionActions = new Map(defs.actions.map((a: any) => [`${a.plugin}:${a.id}`, a]))
+    this.state.companionFeedbacks = new Map(defs.feedbacks.map((f: any) => [`${f.plugin}:${f.id}`, f]))
+
     this.state.emit()
   }
 

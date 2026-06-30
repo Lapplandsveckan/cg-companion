@@ -28,6 +28,7 @@ class CGManagerInstance extends InstanceBase {
     this.registerDefinitions()
 
     this.state.onChange(() => this.sync())
+    this.state.onFeedbackChange(() => this.checkAllFeedbacks())
 
     this.startConnection(config as unknown as Config)
   }
@@ -49,7 +50,7 @@ class CGManagerInstance extends InstanceBase {
 
   private registerDefinitions() {
     this.setActionDefinitions(buildActions(this.api, this.state))
-    this.setFeedbackDefinitions(buildFeedbacks(this.state))
+    this.setFeedbackDefinitions(buildFeedbacks(this.api, this.state))
     this.setVariableDefinitions(buildVariableDefinitions(this.state))
   }
 

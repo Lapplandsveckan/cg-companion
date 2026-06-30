@@ -1,6 +1,7 @@
 import type { CompanionActionDefinitions } from '@companion-module/base'
 import type { REPClient } from './api.js'
 import type { State } from './state.js'
+import { toCompanionOptions } from './options.js'
 
 export function buildActions(api: REPClient, state: State): CompanionActionDefinitions {
   const routeChoices = [...state.routes.values()].map(r => ({ id: r.id, label: r.name }))
@@ -92,5 +93,22 @@ export function buildActions(api: REPClient, state: State): CompanionActionDefin
         api.request(`plugins/${name}/status`, 'ACTION', { enabled: !plugin.enabled }).catch(noOp)
       },
     },
+    ...buildCompanionActions(api, state, noOp),
   }
+}
+
+function buildCompanionActions(api: REPClient, state: State, noOp: () => void): CompanionActionDefinitions {
+  const out: CompanionActionDefinitions = {}
+  for (const def of state.companionActions.values()) {
+    out[`x_${def.plugin}_${def.id}`] = {
+      name: `${def.plugin}: ${def.name}`,
+      description: def.description,
+      options: toCompanionOptions(def.options) as never,
+      callback: (action) => {
+        api.request(`companion/action/${def.plugin}/${def.id}`, 'ACTION', { options: action.options })
+          .catch(noOp)
+      },
+    }
+  }
+  return out
 }

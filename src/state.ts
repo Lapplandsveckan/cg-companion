@@ -1,3 +1,7 @@
+import type { ActionDef, FeedbackDef, CompanionStyle } from './companion.js'
+
+export type { ActionDef, FeedbackDef, CompanionStyle }
+
 export interface CasparStatus {
   running: boolean
   supported: boolean
@@ -40,14 +44,39 @@ export class State {
   runningConfig: unknown = null
   connected = false
 
+  /** key = `${plugin}:${id}` */
+  companionActions: Map<string, ActionDef> = new Map()
+  /** key = `${plugin}:${id}` */
+  companionFeedbacks: Map<string, FeedbackDef> = new Map()
+  /** key = instanceId (as assigned by Companion when a feedback is placed) */
+  feedbackValues: Map<string, boolean | CompanionStyle> = new Map()
+  /** key = instanceId → JSON-stringified options last sent to the server; used to detect option changes */
+  feedbackSubscribedOptions: Map<string, string> = new Map()
+
   private listeners: (() => void)[] = []
+  private feedbackListeners: (() => void)[] = []
 
   onChange(cb: () => void) {
     this.listeners.push(cb)
   }
 
-  emit() {
-    this.listeners.forEach(cb => cb())
+  /** Register a callback that fires only when feedback values update (no full sync needed). */
+  onFeedbackChange(cb: () => void) {
+    this.feedbackListeners.push(cb)
+  }
+
+  emit(type: 'feedback' | 'change' = 'change') {
+    if (type === 'feedback') {
+      this.feedbackListeners.forEach(cb => cb())
+    } else {
+      this.listeners.forEach(cb => cb())
+    }
+  }
+
+  /** Clear all subscription state (call on disconnect/reconnect so placed feedbacks re-subscribe). */
+  resetFeedbackState() {
+    this.feedbackValues.clear()
+    this.feedbackSubscribedOptions.clear()
   }
 
   handleBroadcast(target: string, method: string, data: unknown) {
@@ -113,6 +142,20 @@ export class State {
           rd.items = order.map(eid => byId.get(eid)!).filter(Boolean)
         }
         break
+      }
+
+      case 'companion/definitions': {
+        const { actions, feedbacks } = data as { actions: ActionDef[]; feedbacks: FeedbackDef[] }
+        this.companionActions = new Map(actions.map(a => [`${a.plugin}:${a.id}`, a]))
+        this.companionFeedbacks = new Map(feedbacks.map(f => [`${f.plugin}:${f.id}`, f]))
+        break
+      }
+
+      case 'companion/feedback': {
+        const { instanceId, value } = data as { instanceId: string; value: boolean | CompanionStyle }
+        this.feedbackValues.set(instanceId, value)
+        this.emit('feedback')
+        return  // emit('feedback') instead of emit() — avoids rebuilding all definitions
       }
     }
     this.emit()
